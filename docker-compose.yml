@@ -1,0 +1,72 @@
+services:
+  app1:
+    build:
+      context: ./app
+    container_name: app1
+    hostname: app1    
+    environment:
+      DB_HOST: db
+      DB_USER: ericu
+      DB_PASS: ericu
+      DB_NAME: bdd_reto2
+    volumes:
+      - ./app:/var/www/html
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  app2:
+    build:
+      context: ./app
+    container_name: app2
+    hostname: app2
+    environment:
+      DB_HOST: db
+      DB_USER: ericu
+      DB_PASS: ericu
+      DB_NAME: bdd_reto2
+    volumes:
+      - ./app:/var/www/html
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  db:
+    image: mysql:5.7
+    container_name: db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: bdd_reto2
+      MYSQL_USER: ericu
+      MYSQL_PASSWORD: ericu
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - app1
+      - app2
+
+volumes:
+  db_data:
